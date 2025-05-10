@@ -72,7 +72,7 @@ export default function InvoicePreview({ data }: InvoicePreviewProps) {
         <div className="grid grid-cols-[120px_1fr] gap-y-4 mb-6 print:gap-y-2 print:mb-4">
           <div className="text-[#1e4e6c] font-medium">RECIPIENT</div>
           <div className="font-medium text-gray-800">
-            {data.recipient || "Abu Hanif"}
+            {data.recipient || "Bangladesh Swimming Federation"}
           </div>
 
           <div className="text-[#1e4e6c] font-medium">SUBJECT</div>
