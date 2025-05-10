@@ -38,14 +38,14 @@ export default function InvoicePreview({ data }: InvoicePreviewProps) {
       <div className="relative h-[150px] w-full print:h-[100px]">
         {/* Logo and company name */}
         <div className="absolute top-8 left-8 flex items-center z-10">
-          <div className="relative w-16 h-16 print:w-12 print:h-12 rounded-full flex items-center justify-center text-white">
+          <div className="relative w-16 h-16 print:w-12 print:h-12 bg-[#1e4e6c] rounded-full flex items-center justify-center text-white">
             <span>
               <Image
                 src="/barnick-logo.png"
                 alt="Logo"
-                width={100}
-                height={100}
-                className="print:w-10 print:h-10"
+                width={64}
+                height={64}
+                className="w-full h-full object-contain"
               />
             </span>
           </div>
@@ -124,17 +124,44 @@ export default function InvoicePreview({ data }: InvoicePreviewProps) {
                 <div className="col-span-3">Visiting Card</div>
                 <div className="col-span-4">As per Sample</div>
                 <div className="text-center col-span-2">1000</div>
-                <div className="text-center col-span-1">@ 2.25/-</div>
+                <div className="text-center col-span-1">0.00/-</div>
                 <div className="text-right col-span-2">0000/-</div>
               </div>
             )}
           </div>
 
-          {/* Total */}
-          <div className="flex justify-end mt-4 border-t-2 border-[#1e4e6c] pt-2 pr-4">
-            <div className="text-[#1e4e6c] font-bold mr-12">Total</div>
-            <div className="font-bold">
-              {data.total ? data.total.toFixed(0) : "00,000"}/-
+          {/* Subtotal, Delivery, Discount, and Total */}
+          <div className="flex flex-col items-end mt-4 border-t-2 border-[#1e4e6c] pt-2 pr-4">
+            <div className="grid grid-cols-2 gap-x-12 text-right">
+              <div className="text-[#1e4e6c] font-medium">Subtotal</div>
+              <div className="font-medium">
+                {data.subtotal ? data.subtotal.toFixed(0) : "0"}/-
+              </div>
+
+              {data.deliveryCost > 0 && (
+                <>
+                  <div className="text-[#1e4e6c] font-medium">
+                    Delivery Cost
+                  </div>
+                  <div className="font-medium">
+                    {data.deliveryCost.toFixed(0)}/-
+                  </div>
+                </>
+              )}
+
+              {data.discount > 0 && (
+                <>
+                  <div className="text-[#1e4e6c] font-medium">Discount</div>
+                  <div className="font-medium text-red-600">
+                    -{data.discount.toFixed(0)}/-
+                  </div>
+                </>
+              )}
+
+              <div className="text-[#1e4e6c] font-bold">Total</div>
+              <div className="font-bold">
+                {data.total ? data.total.toFixed(0) : "00,000"}/-
+              </div>
             </div>
           </div>
         </div>
@@ -166,15 +193,15 @@ export default function InvoicePreview({ data }: InvoicePreviewProps) {
         <div className="flex justify-end px-8 print:px-4 mb-4">
           <div className="text-center">
             <div className="mb-1 h-10 flex items-end justify-center">
-              <span>
+              <div className="border-b border-gray-400 w-40 text-center italic text-gray-600 print:text-sm">
                 <Image
                   src="/signature.png"
                   alt="Signature"
-                  width={100}
+                  width={200}
                   height={200}
-                  className="print:w-60 print:h-20"
+                  className="w-full h-full object-contain"
                 />
-              </span>
+              </div>
             </div>
             <div className="pt-1 print:text-xs">
               <div>Biplob Chakraborty</div>

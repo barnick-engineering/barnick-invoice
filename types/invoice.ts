@@ -1,16 +1,19 @@
 export interface LineItem {
-  id: number
-  product: string
-  description: string
-  quantity: number
-  rate: number
-  amount: number
+  id: number;
+  product: string;
+  description: string;
+  quantity: number;
+  rate: number;
+  amount: number;
 }
 
 export interface InvoiceData {
-  recipient: string
-  subject: string
-  date: string
-  lineItems: LineItem[]
-  total: number
+  recipient: string;
+  subject: string;
+  date: string;
+  lineItems: LineItem[];
+  subtotal: number;
+  deliveryCost: number;
+  discount: number;
+  total: number;
 }
