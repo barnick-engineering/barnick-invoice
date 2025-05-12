@@ -1,149 +1,157 @@
-"use client";
+"use client"
 
-import { useState, useRef } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
-import InvoicePreview from "@/components/invoice-preview";
-import type { InvoiceData, LineItem } from "@/types/invoice";
+import { useState, useRef } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent } from "@/components/ui/card"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import InvoicePreview from "@/components/invoice-preview"
+import type { InvoiceData, LineItem } from "@/types/invoice"
 
 export default function InvoiceGenerator() {
   const [invoiceData, setInvoiceData] = useState<InvoiceData>({
+    documentType: "invoice",
+    invoiceNumber: "",
     recipient: "",
     subject: "",
     date: new Date().toISOString().split("T")[0],
-    lineItems: [
-      {
-        id: 1,
-        product: "",
-        description: "As per Sample",
-        quantity: 0,
-        rate: 0,
-        amount: 0,
-      },
-    ],
+    lineItems: [{ id: 1, product: "", description: "As per Sample", quantity: 0, rate: 0, amount: 0 }],
     subtotal: 0,
     deliveryCost: 0,
     discount: 0,
     total: 0,
-  });
+  })
 
-  const invoiceRef = useRef<HTMLDivElement>(null);
+  const invoiceRef = useRef<HTMLDivElement>(null)
 
   const handlePrint = () => {
     if (invoiceRef.current) {
       // Open print dialog
-      window.print();
+      window.print()
     }
-  };
+  }
 
-  const updateLineItem = (
-    index: number,
-    field: keyof LineItem,
-    value: string | number
-  ) => {
-    const updatedItems = [...invoiceData.lineItems];
+  const updateLineItem = (index: number, field: keyof LineItem, value: string | number) => {
+    const updatedItems = [...invoiceData.lineItems]
 
     if (field === "quantity" || field === "rate") {
-      const numValue =
-        typeof value === "string" ? Number.parseFloat(value) || 0 : value;
+      const numValue = typeof value === "string" ? Number.parseFloat(value) || 0 : value
       updatedItems[index] = {
         ...updatedItems[index],
         [field]: numValue,
-        amount:
-          field === "quantity"
-            ? numValue * updatedItems[index].rate
-            : updatedItems[index].quantity * numValue,
-      };
+        amount: field === "quantity" ? numValue * updatedItems[index].rate : updatedItems[index].quantity * numValue,
+      }
     } else {
       updatedItems[index] = {
         ...updatedItems[index],
         [field]: value,
-      };
+      }
     }
 
-    const subtotal = updatedItems.reduce((sum, item) => sum + item.amount, 0);
-    const total = subtotal + invoiceData.deliveryCost - invoiceData.discount;
+    const subtotal = updatedItems.reduce((sum, item) => sum + item.amount, 0)
+    const total = subtotal + invoiceData.deliveryCost - invoiceData.discount
 
     setInvoiceData({
       ...invoiceData,
       lineItems: updatedItems,
       subtotal,
       total,
-    });
-  };
+    })
+  }
 
   const updateDeliveryCost = (value: string) => {
-    const deliveryCost = Number.parseFloat(value) || 0;
-    const total = invoiceData.subtotal + deliveryCost - invoiceData.discount;
+    const deliveryCost = Number.parseFloat(value) || 0
+    const total = invoiceData.subtotal + deliveryCost - invoiceData.discount
 
     setInvoiceData({
       ...invoiceData,
       deliveryCost,
       total,
-    });
-  };
+    })
+  }
 
   const updateDiscount = (value: string) => {
-    const discount = Number.parseFloat(value) || 0;
-    const total = invoiceData.subtotal + invoiceData.deliveryCost - discount;
+    const discount = Number.parseFloat(value) || 0
+    const total = invoiceData.subtotal + invoiceData.deliveryCost - discount
 
     setInvoiceData({
       ...invoiceData,
       discount,
       total,
-    });
-  };
+    })
+  }
 
   const addLineItem = () => {
-    const newId =
-      Math.max(0, ...invoiceData.lineItems.map((item) => item.id)) + 1;
+    const newId = Math.max(0, ...invoiceData.lineItems.map((item) => item.id)) + 1
     setInvoiceData({
       ...invoiceData,
       lineItems: [
         ...invoiceData.lineItems,
-        {
-          id: newId,
-          product: "",
-          description: "As per Sample",
-          quantity: 0,
-          rate: 0,
-          amount: 0,
-        },
+        { id: newId, product: "", description: "As per Sample", quantity: 0, rate: 0, amount: 0 },
       ],
-    });
-  };
+    })
+  }
 
   const removeLineItem = (id: number) => {
-    const updatedItems = invoiceData.lineItems.filter((item) => item.id !== id);
-    const subtotal = updatedItems.reduce((sum, item) => sum + item.amount, 0);
-    const total = subtotal + invoiceData.deliveryCost - invoiceData.discount;
+    const updatedItems = invoiceData.lineItems.filter((item) => item.id !== id)
+    const subtotal = updatedItems.reduce((sum, item) => sum + item.amount, 0)
+    const total = subtotal + invoiceData.deliveryCost - invoiceData.discount
 
     setInvoiceData({
       ...invoiceData,
       lineItems: updatedItems,
       subtotal,
       total,
-    });
-  };
+    })
+  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 print:!grid-cols-1 print:gap-0">
       <Card className="print:hidden">
         <CardContent className="pt-6">
-          <h2 className="text-2xl font-bold mb-6">Invoice Details</h2>
+          <h2 className="text-2xl font-bold mb-6">Document Details</h2>
 
           <div className="space-y-4 mb-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="document-type">Document Type</Label>
+                <Select
+                  value={invoiceData.documentType}
+                  onValueChange={(value) =>
+                    setInvoiceData({
+                      ...invoiceData,
+                      documentType: value as "invoice" | "delivery-challan",
+                    })
+                  }
+                >
+                  <SelectTrigger id="document-type">
+                    <SelectValue placeholder="Select document type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="invoice">Invoice</SelectItem>
+                    <SelectItem value="delivery-challan">Delivery Challan</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="invoice-number">Document Number</Label>
+                <Input
+                  id="invoice-number"
+                  value={invoiceData.invoiceNumber}
+                  onChange={(e) => setInvoiceData({ ...invoiceData, invoiceNumber: e.target.value })}
+                  placeholder={invoiceData.documentType === "invoice" ? "Invoice #" : "Challan #"}
+                />
+              </div>
+            </div>
+
             <div>
               <Label htmlFor="recipient">Recipient</Label>
               <Input
                 id="recipient"
                 value={invoiceData.recipient}
-                onChange={(e) =>
-                  setInvoiceData({ ...invoiceData, recipient: e.target.value })
-                }
+                onChange={(e) => setInvoiceData({ ...invoiceData, recipient: e.target.value })}
                 placeholder="Recipient name"
               />
             </div>
@@ -153,9 +161,7 @@ export default function InvoiceGenerator() {
               <Input
                 id="subject"
                 value={invoiceData.subject}
-                onChange={(e) =>
-                  setInvoiceData({ ...invoiceData, subject: e.target.value })
-                }
+                onChange={(e) => setInvoiceData({ ...invoiceData, subject: e.target.value })}
                 placeholder="Invoice subject"
               />
             </div>
@@ -166,33 +172,24 @@ export default function InvoiceGenerator() {
                 id="date"
                 type="date"
                 value={invoiceData.date}
-                onChange={(e) =>
-                  setInvoiceData({ ...invoiceData, date: e.target.value })
-                }
+                onChange={(e) => setInvoiceData({ ...invoiceData, date: e.target.value })}
               />
             </div>
           </div>
 
           <h3 className="text-xl font-bold mb-4">
             Line Items{" "}
-            <span className="text-sm font-normal text-gray-500">
-              (For best results, limit to 5 items per page)
-            </span>
+            <span className="text-sm font-normal text-gray-500">(For best results, limit to 5 items per page)</span>
           </h3>
 
           {invoiceData.lineItems.map((item, index) => (
-            <div
-              key={item.id}
-              className="grid grid-cols-12 gap-2 mb-6 border-b pb-4"
-            >
+            <div key={item.id} className="grid grid-cols-12 gap-2 mb-6 border-b pb-4">
               <div className="col-span-12 sm:col-span-6">
                 <Label htmlFor={`product-${item.id}`}>Product</Label>
                 <Input
                   id={`product-${item.id}`}
                   value={item.product}
-                  onChange={(e) =>
-                    updateLineItem(index, "product", e.target.value)
-                  }
+                  onChange={(e) => updateLineItem(index, "product", e.target.value)}
                   placeholder="Product name"
                 />
               </div>
@@ -202,9 +199,7 @@ export default function InvoiceGenerator() {
                 <Textarea
                   id={`description-${item.id}`}
                   value={item.description}
-                  onChange={(e) =>
-                    updateLineItem(index, "description", e.target.value)
-                  }
+                  onChange={(e) => updateLineItem(index, "description", e.target.value)}
                   placeholder="Product description"
                   rows={2}
                 />
@@ -216,9 +211,7 @@ export default function InvoiceGenerator() {
                   id={`quantity-${item.id}`}
                   type="number"
                   value={item.quantity || ""}
-                  onChange={(e) =>
-                    updateLineItem(index, "quantity", e.target.value)
-                  }
+                  onChange={(e) => updateLineItem(index, "quantity", e.target.value)}
                   placeholder="0"
                 />
               </div>
@@ -229,9 +222,7 @@ export default function InvoiceGenerator() {
                   id={`rate-${item.id}`}
                   type="number"
                   value={item.rate || ""}
-                  onChange={(e) =>
-                    updateLineItem(index, "rate", e.target.value)
-                  }
+                  onChange={(e) => updateLineItem(index, "rate", e.target.value)}
                   placeholder="0.00"
                 />
               </div>
@@ -282,7 +273,9 @@ export default function InvoiceGenerator() {
 
           <div className="flex justify-between mt-6">
             <Button onClick={addLineItem}>Add Item</Button>
-            <Button onClick={handlePrint}>Generate Invoice</Button>
+            <Button onClick={handlePrint}>
+              Generate {invoiceData.documentType === "invoice" ? "Invoice" : "Challan"}
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -293,5 +286,5 @@ export default function InvoiceGenerator() {
         </div>
       </div>
     </div>
-  );
+  )
 }

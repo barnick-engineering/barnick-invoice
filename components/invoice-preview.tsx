@@ -9,6 +9,10 @@ interface InvoicePreviewProps {
 }
 
 export default function InvoicePreview({ data }: InvoicePreviewProps) {
+  // Format document type for display
+  const documentTypeDisplay =
+    data.documentType === "invoice" ? "INVOICE" : "DELIVERY CHALLAN";
+
   return (
     <div className="bg-white w-full max-w-[800px] mx-auto shadow-lg print:shadow-none print:w-full print:max-w-none print:mx-0 print:p-0 print:overflow-hidden relative">
       {/* Print styles */}
@@ -38,14 +42,14 @@ export default function InvoicePreview({ data }: InvoicePreviewProps) {
       <div className="relative h-[150px] w-full print:h-[100px]">
         {/* Logo and company name */}
         <div className="absolute top-8 left-8 flex items-center z-10">
-          <div className="relative w-16 h-16 print:w-12 print:h-12 bg-[#1e4e6c] rounded-full flex items-center justify-center text-white">
-            <span>
+          <div className="relative w-16 h-16 print:w-12 print:h-12 rounded-full flex items-center justify-center text-white">
+            <span className="text-xl font-bold print:text-base">
               <Image
                 src="/barnick-logo.png"
                 alt="Logo"
-                width={64}
-                height={64}
-                className="w-full h-full object-contain"
+                width={200}
+                height={200}
+                className="print:w-12 print:h-12"
               />
             </span>
           </div>
@@ -67,9 +71,22 @@ export default function InvoicePreview({ data }: InvoicePreviewProps) {
       </div>
 
       {/* CONTENT SECTION */}
-      <div className="px-8 py-6 print:px-4 print:py-4 invoice-content">
+      <div className="px-8 py-6 print:px-6 print:py-6 invoice-content">
+        {/* Document Type and Number */}
+        <div className="mb-8 print:mb-6">
+          <h2 className="text-xl font-bold text-[#1e4e6c] uppercase">
+            {documentTypeDisplay}
+          </h2>
+          {data.invoiceNumber && (
+            <p className="text-gray-600 mt-1">
+              {data.documentType === "invoice" ? "Invoice" : "Challan"} #:{" "}
+              {data.invoiceNumber}
+            </p>
+          )}
+        </div>
+
         {/* Invoice details */}
-        <div className="grid grid-cols-[120px_1fr] gap-y-4 mb-6 print:gap-y-2 print:mb-4">
+        <div className="grid grid-cols-[120px_1fr] gap-y-4 mb-10 print:gap-y-3 print:mb-8">
           <div className="text-[#1e4e6c] font-medium">RECIPIENT</div>
           <div className="font-medium text-gray-800">
             {data.recipient || "Bangladesh Swimming Federation"}
@@ -102,7 +119,7 @@ export default function InvoicePreview({ data }: InvoicePreviewProps) {
               data.lineItems.map((item, index) => (
                 <div
                   key={item.id}
-                  className="grid grid-cols-12 py-2 px-2 border-b border-gray-200 print:text-xs"
+                  className="grid grid-cols-12 py-3 px-2 border-b border-gray-200 print:text-xs print:py-2"
                 >
                   <div className="col-span-3">
                     {item.product || "Visiting Card"}
@@ -124,14 +141,14 @@ export default function InvoicePreview({ data }: InvoicePreviewProps) {
                 <div className="col-span-3">Visiting Card</div>
                 <div className="col-span-4">As per Sample</div>
                 <div className="text-center col-span-2">1000</div>
-                <div className="text-center col-span-1">0.00/-</div>
+                <div className="text-center col-span-1">@ 2.25/-</div>
                 <div className="text-right col-span-2">0000/-</div>
               </div>
             )}
           </div>
 
           {/* Subtotal, Delivery, Discount, and Total */}
-          <div className="flex flex-col items-end mt-4 border-t-2 border-[#1e4e6c] pt-2 pr-4">
+          <div className="flex flex-col items-end mt-6 border-t-2 border-[#1e4e6c] pt-4 pr-4">
             <div className="grid grid-cols-2 gap-x-12 text-right">
               <div className="text-[#1e4e6c] font-medium">Subtotal</div>
               <div className="font-medium">
@@ -166,29 +183,33 @@ export default function InvoicePreview({ data }: InvoicePreviewProps) {
           </div>
         </div>
 
-        {/* Terms and conditions */}
-        <div className="mt-6 mb-4 print:mb-2">
-          <h3 className="font-bold mb-1 print:text-xs">Terms & Conditions:</h3>
-          <ul className="list-disc pl-4 space-y-0 print:text-xs text-sm">
-            <li>
-              A 50% advance payment is required. Remaining 50% due upon
-              completion within 15 days of delivery.
-            </li>
-            <li>
-              Valid for 15 days from issue date unless specified (*depends on
-              raw materials price).
-            </li>
-            <li>Changes after confirmation may incur additional costs.</li>
-            <li>Delivery dates agreed upon at order confirmation.</li>
-            <li>
-              Prices exclude Vat & Taxes. A carrying charge will be added.
-            </li>
-          </ul>
-        </div>
+        {/* Terms and conditions - only show for invoices */}
+        {data.documentType === "invoice" && (
+          <div className="mt-8 mb-6 print:mb-4">
+            <h3 className="font-bold mb-1 print:text-xs">
+              Terms & Conditions:
+            </h3>
+            <ul className="list-disc pl-4 space-y-0 print:text-xs text-sm">
+              <li>
+                A 50% advance payment is required. Remaining 50% due upon
+                completion within 15 days of delivery.
+              </li>
+              <li>
+                Valid for 15 days from issue date unless specified (*depends on
+                raw materials price).
+              </li>
+              <li>Changes after confirmation may incur additional costs.</li>
+              <li>Delivery dates agreed upon at order confirmation.</li>
+              <li>
+                Prices exclude Vat & Taxes. A carrying charge will be added.
+              </li>
+            </ul>
+          </div>
+        )}
       </div>
 
       {/* FOOTER SECTION - Fixed at bottom */}
-      <div className="relative mt-auto invoice-footer bg-white">
+      <div className="relative mt-auto invoice-footer bg-white pt-4">
         {/* Signature */}
         <div className="flex justify-end px-8 print:px-4 mb-4">
           <div className="text-center">
@@ -199,7 +220,7 @@ export default function InvoicePreview({ data }: InvoicePreviewProps) {
                   alt="Signature"
                   width={200}
                   height={200}
-                  className="w-full h-full object-contain"
+                  className="print:w-12 print:h-12"
                 />
               </div>
             </div>
