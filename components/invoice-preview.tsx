@@ -127,7 +127,7 @@ export default function InvoicePreview({ data }: InvoicePreviewProps) {
                     {item.quantity || 1000}
                   </div>
                   <div className="text-center col-span-1">
-                    @ {item.rate ? item.rate.toFixed(2) : "0.00"}/-
+                    {item.rate ? item.rate.toFixed(2) : "0.00"}/-
                   </div>
                   <div className="text-right col-span-2">
                     {item.amount ? item.amount.toFixed(0) : "0000"}/-
