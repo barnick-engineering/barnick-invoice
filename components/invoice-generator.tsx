@@ -152,7 +152,7 @@ export default function InvoiceGenerator() {
                 id="recipient"
                 value={invoiceData.recipient}
                 onChange={(e) => setInvoiceData({ ...invoiceData, recipient: e.target.value })}
-                placeholder="Recipient name"
+                placeholder="Bangladesh Swimming Federation"
               />
             </div>
 

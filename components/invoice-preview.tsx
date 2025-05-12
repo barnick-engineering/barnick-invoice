@@ -42,16 +42,14 @@ export default function InvoicePreview({ data }: InvoicePreviewProps) {
       <div className="relative h-[150px] w-full print:h-[100px]">
         {/* Logo and company name */}
         <div className="absolute top-8 left-8 flex items-center z-10">
-          <div className="relative w-16 h-16 print:w-12 print:h-12 rounded-full flex items-center justify-center text-white">
-            <span className="text-xl font-bold print:text-base">
-              <Image
-                src="/barnick-logo.png"
-                alt="Logo"
-                width={200}
-                height={200}
-                className="print:w-12 print:h-12"
-              />
-            </span>
+          <div className="relative w-16 h-16 print:w-12 print:h-12 overflow-hidden">
+            <Image
+              src="/logo.png"
+              alt="Barnick Pracharani Logo"
+              width={64}
+              height={64}
+              className="w-full h-full object-contain"
+            />
           </div>
           <div className="ml-4">
             <h1 className="text-[#1e4e6c] text-3xl font-bold print:text-2xl">
@@ -129,7 +127,7 @@ export default function InvoicePreview({ data }: InvoicePreviewProps) {
                     {item.quantity || 1000}
                   </div>
                   <div className="text-center col-span-1">
-                    {item.rate ? item.rate.toFixed(2) : "0.00"}/-
+                    @ {item.rate ? item.rate.toFixed(2) : "0.00"}/-
                   </div>
                   <div className="text-right col-span-2">
                     {item.amount ? item.amount.toFixed(0) : "0000"}/-
@@ -210,22 +208,45 @@ export default function InvoicePreview({ data }: InvoicePreviewProps) {
 
       {/* FOOTER SECTION - Fixed at bottom */}
       <div className="relative mt-auto invoice-footer bg-white pt-4">
-        {/* Signature */}
-        <div className="flex justify-end px-8 print:px-4 mb-4">
-          <div className="text-center">
-            <div className="mb-1 h-10 flex items-end justify-center">
-              <div className="border-b border-gray-400 w-40 text-center italic text-gray-600 print:text-sm">
-                <Image
-                  src="/signature.png"
-                  alt="Signature"
-                  width={200}
-                  height={200}
-                  className="print:w-12 print:h-12"
-                />
+        {/* Signature Section */}
+        <div
+          className={`flex ${
+            data.documentType === "delivery-challan"
+              ? "justify-between"
+              : "justify-end"
+          } px-8 print:px-4 mb-4`}
+        >
+          {/* Recipient Signature - Only for Delivery Challan */}
+          {data.documentType === "delivery-challan" && (
+            <div className="text-center w-40">
+              <div className="h-12 flex items-end justify-center">
+                <div className="border-b border-gray-400 w-full">&nbsp;</div>
+              </div>
+              <div className="mt-2">
+                <div className="font-medium">Recipient's Signature</div>
+                <div className="text-sm text-gray-600">
+                  I have received all items properly
+                </div>
               </div>
             </div>
-            <div className="pt-1 print:text-xs">
-              <div>Biplob Chakraborty</div>
+          )}
+
+          {/* Founder's Signature */}
+          <div className="text-center w-40">
+            <div className="flex flex-col items-center">
+              <div className="h-12 flex items-end justify-center">
+                <Image
+                  src="/signature.png"
+                  alt="Biplob Chakraborty Signature"
+                  width={160}
+                  height={40}
+                  className="w-full h-auto object-contain"
+                />
+              </div>
+              <div className="border-b border-gray-400 w-full mt-1"></div>
+            </div>
+            <div className="mt-2">
+              <div className="font-medium">Biplob Chakraborty</div>
               <div>Founder & CEO</div>
             </div>
           </div>
