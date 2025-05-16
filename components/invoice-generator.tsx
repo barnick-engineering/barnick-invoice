@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -28,7 +28,27 @@ export default function InvoiceGenerator() {
     advance: 0,
   })
 
+  const [isLoadedFromDraft, setIsLoadedFromDraft] = useState(false)
+  const [drafts, setDrafts] = useState<{ [key: string]: InvoiceData[] }>({
+    invoice: [],
+    "delivery-challan": [],
+    quotation: [],
+  })
+
   const invoiceRef = useRef<HTMLDivElement>(null)
+
+  // Load drafts from local storage on component mount
+  useEffect(() => {
+    const storedDrafts = localStorage.getItem("invoiceDrafts")
+    if (storedDrafts) {
+      try {
+        const parsedDrafts = JSON.parse(storedDrafts)
+        setDrafts(parsedDrafts)
+      } catch (error) {
+        console.error("Error parsing drafts from local storage:", error)
+      }
+    }
+  }, [])
 
   const handlePrint = () => {
     if (invoiceRef.current) {
@@ -133,6 +153,58 @@ export default function InvoiceGenerator() {
         return "Document #"
     }
   }
+
+  // Save current invoice data as draft to local storage
+  const saveAsDraft = () => {
+    const docType = invoiceData.documentType
+    const updatedDrafts = { ...drafts }
+
+    // Add current invoice data to the appropriate array
+    updatedDrafts[docType] = [...(updatedDrafts[docType] || []), { ...invoiceData, savedAt: new Date().toISOString() }]
+
+    // Save to local storage
+    localStorage.setItem("invoiceDrafts", JSON.stringify(updatedDrafts))
+    setDrafts(updatedDrafts)
+    setIsLoadedFromDraft(true)
+
+    alert(`Saved as ${docType} draft!`)
+  }
+
+  // Load the most recent draft of the current document type
+  const loadDraft = () => {
+    const docType = invoiceData.documentType
+    if (drafts[docType] && drafts[docType].length > 0) {
+      // Get the most recent draft
+      const mostRecentDraft = drafts[docType][drafts[docType].length - 1]
+      setInvoiceData(mostRecentDraft)
+      setIsLoadedFromDraft(true)
+    } else {
+      alert(`No ${docType} drafts found.`)
+    }
+  }
+
+  // Reset form to default state
+  const resetData = () => {
+    setInvoiceData({
+      documentType: invoiceData.documentType, // Keep the current document type
+      invoiceNumber: "",
+      recipient: "",
+      subject: "",
+      address: "",
+      date: new Date().toISOString().split("T")[0],
+      lineItems: [{ id: 1, product: "", description: "As per Sample", quantity: 0, rate: 0, amount: 0 }],
+      subtotal: 0,
+      deliveryCost: 0,
+      discount: 0,
+      total: 0,
+      showTotals: true,
+      advance: 0,
+    })
+    setIsLoadedFromDraft(false)
+  }
+
+  // Check if there are drafts available for the current document type
+  const hasDrafts = drafts[invoiceData.documentType]?.length > 0
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 print:!grid-cols-1 print:gap-0">
@@ -349,8 +421,24 @@ export default function InvoiceGenerator() {
             </div>
           )}
 
-          <div className="flex justify-between mt-6">
-            <Button onClick={addLineItem}>Add Item</Button>
+          {/* Draft management buttons */}
+          <div className="flex flex-wrap gap-2 justify-between mt-6">
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={addLineItem}>Add Item</Button>
+              <Button variant="outline" onClick={saveAsDraft}>
+                Save as Draft
+              </Button>
+              {hasDrafts && (
+                <Button variant="outline" onClick={loadDraft}>
+                  Load Draft
+                </Button>
+              )}
+              {isLoadedFromDraft && (
+                <Button variant="destructive" onClick={resetData}>
+                  Reset Data
+                </Button>
+              )}
+            </div>
             <Button onClick={handlePrint}>
               Generate{" "}
               {invoiceData.documentType === "invoice"
