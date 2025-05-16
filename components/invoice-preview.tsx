@@ -1,11 +1,11 @@
-"use client";
+"use client"
 
-import type { InvoiceData } from "@/types/invoice";
-import { formatDate } from "@/lib/utils";
-import Image from "next/image";
+import type { InvoiceData } from "@/types/invoice"
+import { formatDate } from "@/lib/utils"
+import Image from "next/image"
 
 interface InvoicePreviewProps {
-  data: InvoiceData;
+  data: InvoiceData
 }
 
 export default function InvoicePreview({ data }: InvoicePreviewProps) {
@@ -13,20 +13,29 @@ export default function InvoicePreview({ data }: InvoicePreviewProps) {
   const getDocumentTypeDisplay = () => {
     switch (data.documentType) {
       case "invoice":
-        return "INVOICE";
+        return "INVOICE"
       case "delivery-challan":
-        return "DELIVERY CHALLAN";
+        return "DELIVERY CHALLAN"
       case "quotation":
-        return "QUOTATION";
+        return "QUOTATION"
       default:
-        return "DOCUMENT";
+        return "DOCUMENT"
     }
-  };
+  }
 
-  const documentTypeDisplay = getDocumentTypeDisplay();
+  const documentTypeDisplay = getDocumentTypeDisplay()
 
   // Determine if totals should be shown
-  const showTotals = data.documentType !== "quotation" || data.showTotals;
+  const showTotals = data.documentType === "invoice" || (data.documentType === "quotation" && data.showTotals)
+
+  // Determine if rate and amount columns should be shown
+  const showRateAndAmount = data.documentType !== "delivery-challan"
+
+  // Calculate due amount for invoices
+  const dueAmount = data.documentType === "invoice" ? data.total - data.advance : 0
+
+  // Determine if advance and due should be shown (only for invoices with advance > 0)
+  const showAdvanceAndDue = data.documentType === "invoice" && data.advance > 0
 
   return (
     <div className="bg-white w-full max-w-[800px] mx-auto shadow-lg print:shadow-none print:w-full print:max-w-none print:mx-0 print:p-0 print:overflow-hidden relative">
@@ -67,12 +76,8 @@ export default function InvoicePreview({ data }: InvoicePreviewProps) {
             />
           </div>
           <div className="ml-4">
-            <h1 className="text-[#1e4e6c] text-3xl font-bold print:text-2xl">
-              BARNICK
-            </h1>
-            <h1 className="text-[#1e4e6c] text-3xl font-bold print:text-2xl">
-              PRACHARANI
-            </h1>
+            <h1 className="text-[#1e4e6c] text-3xl font-bold print:text-2xl">BARNICK</h1>
+            <h1 className="text-[#1e4e6c] text-3xl font-bold print:text-2xl">PRACHARANI</h1>
           </div>
         </div>
 
@@ -87,16 +92,14 @@ export default function InvoicePreview({ data }: InvoicePreviewProps) {
       <div className="px-8 py-6 print:px-6 print:py-6 invoice-content">
         {/* Document Type and Number */}
         <div className="mb-8 print:mb-6">
-          <h2 className="text-xl font-bold text-[#1e4e6c] uppercase">
-            {documentTypeDisplay}
-          </h2>
+          <h2 className="text-xl font-bold text-[#1e4e6c] uppercase">{documentTypeDisplay}</h2>
           {data.invoiceNumber && (
             <p className="text-gray-600 mt-1">
               {data.documentType === "invoice"
                 ? "Invoice"
                 : data.documentType === "delivery-challan"
-                ? "Challan"
-                : "Quotation"}{" "}
+                  ? "Challan"
+                  : "Quotation"}{" "}
               #: {data.invoiceNumber}
             </p>
           )}
@@ -105,14 +108,11 @@ export default function InvoicePreview({ data }: InvoicePreviewProps) {
         {/* Invoice details */}
         <div className="grid grid-cols-[120px_1fr] gap-y-4 mb-10 print:gap-y-3 print:mb-8">
           <div className="text-[#1e4e6c] font-medium">RECIPIENT</div>
-          <div className="font-medium text-gray-800">
-            {data.recipient || "Bangladesh Swimming Federation"}
-          </div>
+          <div className="font-medium text-gray-800">{data.recipient || "Bangladesh Swimming Federation"}</div>
 
           <div className="text-[#1e4e6c] font-medium">SUBJECT</div>
           <div className="font-medium text-gray-800">
-            {data.subject ||
-              "Quotation for Visiting Card, Bottle Labels, Bottle Packet."}
+            {data.subject || "Quotation for Visiting Card, Bottle Labels, Bottle Packet."}
           </div>
 
           <div className="text-[#1e4e6c] font-medium">ADDRESS</div>
@@ -121,19 +121,27 @@ export default function InvoicePreview({ data }: InvoicePreviewProps) {
           </div>
 
           <div className="text-[#1e4e6c] font-medium">DATE</div>
-          <div className="font-medium text-gray-800">
-            {formatDate(data.date) || "28 Feb, 2025"}
-          </div>
+          <div className="font-medium text-gray-800">{formatDate(data.date) || "28 Feb, 2025"}</div>
         </div>
 
         {/* Table */}
         <div className="w-full">
           <div className="bg-[#1e4e6c] text-white grid grid-cols-12 py-2 px-2 text-sm">
-            <div className="font-bold col-span-3">PRODUCT</div>
-            <div className="font-bold col-span-4">DESCRIPTION</div>
-            <div className="font-bold text-center col-span-2">QUANTITY</div>
-            <div className="font-bold text-center col-span-1">RATE</div>
-            <div className="font-bold text-right col-span-2">AMOUNT</div>
+            {showRateAndAmount ? (
+              <>
+                <div className="font-bold col-span-3">PRODUCT</div>
+                <div className="font-bold col-span-4">DESCRIPTION</div>
+                <div className="font-bold text-center col-span-2">QUANTITY</div>
+                <div className="font-bold text-center col-span-1">RATE</div>
+                <div className="font-bold text-right col-span-2">AMOUNT</div>
+              </>
+            ) : (
+              <>
+                <div className="font-bold col-span-5">PRODUCT</div>
+                <div className="font-bold col-span-5">DESCRIPTION</div>
+                <div className="font-bold text-center col-span-2">QUANTITY</div>
+              </>
+            )}
           </div>
 
           <div>
@@ -143,28 +151,40 @@ export default function InvoicePreview({ data }: InvoicePreviewProps) {
                   key={item.id}
                   className="grid grid-cols-12 py-3 px-2 border-b border-gray-200 print:text-xs print:py-2"
                 >
-                  <div className="col-span-3">
-                    {item.product || "Visiting Card"}
-                  </div>
-                  <div className="col-span-4">{item.description}</div>
-                  <div className="text-center col-span-2">
-                    {item.quantity || 1000}
-                  </div>
-                  <div className="text-center col-span-1">
-                    @ {item.rate ? item.rate.toFixed(2) : "0.00"}/-
-                  </div>
-                  <div className="text-right col-span-2">
-                    {item.amount ? item.amount.toFixed(0) : "0000"}/-
-                  </div>
+                  {showRateAndAmount ? (
+                    <>
+                      <div className="col-span-3">{item.product || "Visiting Card"}</div>
+                      <div className="col-span-4">{item.description}</div>
+                      <div className="text-center col-span-2">{item.quantity || 1000}</div>
+                      <div className="text-center col-span-1">{item.rate ? item.rate.toFixed(2) : "0.00"}/-</div>
+                      <div className="text-right col-span-2">{item.amount ? item.amount.toFixed(0) : "0000"}/-</div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="col-span-5">{item.product || "Visiting Card"}</div>
+                      <div className="col-span-5">{item.description}</div>
+                      <div className="text-center col-span-2">{item.quantity || 1000}</div>
+                    </>
+                  )}
                 </div>
               ))
             ) : (
               <div className="grid grid-cols-12 py-2 px-2 border-b border-gray-200">
-                <div className="col-span-3">Visiting Card</div>
-                <div className="col-span-4">As per Sample</div>
-                <div className="text-center col-span-2">1000</div>
-                <div className="text-center col-span-1">@ 2.25/-</div>
-                <div className="text-right col-span-2">0000/-</div>
+                {showRateAndAmount ? (
+                  <>
+                    <div className="col-span-3">Visiting Card</div>
+                    <div className="col-span-4">As per Sample</div>
+                    <div className="text-center col-span-2">1000</div>
+                    <div className="text-center col-span-1">2.25/-</div>
+                    <div className="text-right col-span-2">0000/-</div>
+                  </>
+                ) : (
+                  <>
+                    <div className="col-span-5">Visiting Card</div>
+                    <div className="col-span-5">As per Sample</div>
+                    <div className="text-center col-span-2">1000</div>
+                  </>
+                )}
               </div>
             )}
           </div>
@@ -174,34 +194,35 @@ export default function InvoicePreview({ data }: InvoicePreviewProps) {
             <div className="flex flex-col items-end mt-6 border-t-2 border-[#1e4e6c] pt-4 pr-4">
               <div className="grid grid-cols-2 gap-x-12 text-right">
                 <div className="text-[#1e4e6c] font-medium">Subtotal</div>
-                <div className="font-medium">
-                  {data.subtotal ? data.subtotal.toFixed(0) : "0"}/-
-                </div>
+                <div className="font-medium">{data.subtotal ? data.subtotal.toFixed(0) : "0"}/-</div>
 
                 {data.deliveryCost > 0 && (
                   <>
-                    <div className="text-[#1e4e6c] font-medium">
-                      Delivery Cost
-                    </div>
-                    <div className="font-medium">
-                      {data.deliveryCost.toFixed(0)}/-
-                    </div>
+                    <div className="text-[#1e4e6c] font-medium">Delivery Cost</div>
+                    <div className="font-medium">{data.deliveryCost.toFixed(0)}/-</div>
                   </>
                 )}
 
                 {data.discount > 0 && (
                   <>
                     <div className="text-[#1e4e6c] font-medium">Discount</div>
-                    <div className="font-medium text-red-600">
-                      -{data.discount.toFixed(0)}/-
-                    </div>
+                    <div className="font-medium text-red-600">-{data.discount.toFixed(0)}/-</div>
                   </>
                 )}
 
                 <div className="text-[#1e4e6c] font-bold">Total</div>
-                <div className="font-bold">
-                  {data.total ? data.total.toFixed(0) : "00,000"}/-
-                </div>
+                <div className="font-bold">{data.total ? data.total.toFixed(0) : "00,000"}/-</div>
+
+                {/* Only show advance and due for invoices with advance > 0 */}
+                {showAdvanceAndDue && (
+                  <>
+                    <div className="text-[#1e4e6c] font-medium">Advance</div>
+                    <div className="font-medium">-{data.advance.toFixed(0)}/-</div>
+
+                    <div className="text-[#1e4e6c] font-bold">Due</div>
+                    <div className="font-bold">{dueAmount.toFixed(0)}/-</div>
+                  </>
+                )}
               </div>
             </div>
           )}
@@ -210,23 +231,13 @@ export default function InvoicePreview({ data }: InvoicePreviewProps) {
         {/* Terms and conditions - only show for quotations */}
         {data.documentType === "quotation" && (
           <div className="mt-8 mb-6 print:mb-4">
-            <h3 className="font-bold mb-1 print:text-xs">
-              Terms & Conditions:
-            </h3>
+            <h3 className="font-bold mb-1 print:text-xs">Terms & Conditions:</h3>
             <ul className="list-disc pl-4 space-y-0 print:text-xs text-sm">
-              <li>
-                A 50% advance payment is required. Remaining 50% due upon
-                completion within 15 days of delivery.
-              </li>
-              <li>
-                Valid for 15 days from issue date unless specified (*depends on
-                raw materials price).
-              </li>
+              <li>A 50% advance payment is required. Remaining 50% due upon completion within 15 days of delivery.</li>
+              <li>Valid for 15 days from issue date unless specified (*depends on raw materials price).</li>
               <li>Changes after confirmation may incur additional costs.</li>
               <li>Delivery dates agreed upon at order confirmation.</li>
-              <li>
-                Prices exclude Vat & Taxes. A carrying charge will be added.
-              </li>
+              <li>Prices exclude Vat & Taxes. A carrying charge will be added.</li>
             </ul>
           </div>
         )}
@@ -236,11 +247,7 @@ export default function InvoicePreview({ data }: InvoicePreviewProps) {
       <div className="relative mt-auto invoice-footer bg-white pt-4">
         {/* Signature Section */}
         <div
-          className={`flex ${
-            data.documentType === "delivery-challan"
-              ? "justify-between"
-              : "justify-end"
-          } px-8 print:px-4 mb-4`}
+          className={`flex ${data.documentType === "delivery-challan" ? "justify-between" : "justify-end"} px-8 print:px-4 mb-4`}
         >
           {/* Recipient Signature - Only for Delivery Challan */}
           {data.documentType === "delivery-challan" && (
@@ -250,9 +257,7 @@ export default function InvoicePreview({ data }: InvoicePreviewProps) {
               </div>
               <div className="mt-2">
                 <div className="font-medium">Recipient's Signature</div>
-                <div className="text-sm text-gray-600">
-                  I have received all items properly
-                </div>
+                <div className="text-sm text-gray-600">I have received all items properly</div>
               </div>
             </div>
           )}
@@ -326,5 +331,5 @@ export default function InvoicePreview({ data }: InvoicePreviewProps) {
         </div>
       </div>
     </div>
-  );
+  )
 }
