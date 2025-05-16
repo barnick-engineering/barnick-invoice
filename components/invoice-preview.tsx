@@ -10,8 +10,20 @@ interface InvoicePreviewProps {
 
 export default function InvoicePreview({ data }: InvoicePreviewProps) {
   // Format document type for display
-  const documentTypeDisplay =
-    data.documentType === "invoice" ? "INVOICE" : "DELIVERY CHALLAN";
+  const getDocumentTypeDisplay = () => {
+    switch (data.documentType) {
+      case "invoice":
+        return "INVOICE";
+      case "delivery-challan":
+        return "DELIVERY CHALLAN";
+      case "quotation":
+        return "QUOTATION";
+      default:
+        return "DOCUMENT";
+    }
+  };
+
+  const documentTypeDisplay = getDocumentTypeDisplay();
 
   return (
     <div className="bg-white w-full max-w-[800px] mx-auto shadow-lg print:shadow-none print:w-full print:max-w-none print:mx-0 print:p-0 print:overflow-hidden relative">
@@ -77,8 +89,12 @@ export default function InvoicePreview({ data }: InvoicePreviewProps) {
           </h2>
           {data.invoiceNumber && (
             <p className="text-gray-600 mt-1">
-              {data.documentType === "invoice" ? "Invoice" : "Challan"} #:{" "}
-              {data.invoiceNumber}
+              {data.documentType === "invoice"
+                ? "Invoice"
+                : data.documentType === "delivery-challan"
+                ? "Challan"
+                : "Quotation"}{" "}
+              #: {data.invoiceNumber}
             </p>
           )}
         </div>
@@ -181,8 +197,8 @@ export default function InvoicePreview({ data }: InvoicePreviewProps) {
           </div>
         </div>
 
-        {/* Terms and conditions - only show for invoices */}
-        {data.documentType === "invoice" && (
+        {/* Terms and conditions - only show for quotations */}
+        {data.documentType === "quotation" && (
           <div className="mt-8 mb-6 print:mb-4">
             <h3 className="font-bold mb-1 print:text-xs">
               Terms & Conditions:
