@@ -12,10 +12,12 @@ export interface InvoiceData {
   invoiceNumber: string;
   recipient: string;
   subject: string;
+  address: string;
   date: string;
   lineItems: LineItem[];
   subtotal: number;
   deliveryCost: number;
   discount: number;
   total: number;
+  showTotals: boolean;
 }

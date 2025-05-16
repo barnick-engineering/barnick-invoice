@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import InvoicePreview from "@/components/invoice-preview";
 import type { InvoiceData, LineItem } from "@/types/invoice";
 
@@ -22,6 +23,7 @@ export default function InvoiceGenerator() {
     invoiceNumber: "",
     recipient: "",
     subject: "",
+    address: "",
     date: new Date().toISOString().split("T")[0],
     lineItems: [
       {
@@ -37,6 +39,7 @@ export default function InvoiceGenerator() {
     deliveryCost: 0,
     discount: 0,
     total: 0,
+    showTotals: true,
   });
 
   const invoiceRef = useRef<HTMLDivElement>(null);
@@ -227,6 +230,19 @@ export default function InvoiceGenerator() {
             </div>
 
             <div>
+              <Label htmlFor="address">Address</Label>
+              <Textarea
+                id="address"
+                value={invoiceData.address}
+                onChange={(e) =>
+                  setInvoiceData({ ...invoiceData, address: e.target.value })
+                }
+                placeholder="Recipient's address"
+                rows={2}
+              />
+            </div>
+
+            <div>
               <Label htmlFor="date">Date</Label>
               <Input
                 id="date"
@@ -237,6 +253,22 @@ export default function InvoiceGenerator() {
                 }
               />
             </div>
+
+            {/* Show totals toggle for quotations */}
+            {invoiceData.documentType === "quotation" && (
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="show-totals"
+                  checked={invoiceData.showTotals}
+                  onCheckedChange={(checked) =>
+                    setInvoiceData({ ...invoiceData, showTotals: checked })
+                  }
+                />
+                <Label htmlFor="show-totals">
+                  Show subtotal and total amounts
+                </Label>
+              </div>
+            )}
           </div>
 
           <h3 className="text-xl font-bold mb-4">

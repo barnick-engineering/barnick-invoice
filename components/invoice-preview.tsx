@@ -25,6 +25,9 @@ export default function InvoicePreview({ data }: InvoicePreviewProps) {
 
   const documentTypeDisplay = getDocumentTypeDisplay();
 
+  // Determine if totals should be shown
+  const showTotals = data.documentType !== "quotation" || data.showTotals;
+
   return (
     <div className="bg-white w-full max-w-[800px] mx-auto shadow-lg print:shadow-none print:w-full print:max-w-none print:mx-0 print:p-0 print:overflow-hidden relative">
       {/* Print styles */}
@@ -112,6 +115,11 @@ export default function InvoicePreview({ data }: InvoicePreviewProps) {
               "Quotation for Visiting Card, Bottle Labels, Bottle Packet."}
           </div>
 
+          <div className="text-[#1e4e6c] font-medium">ADDRESS</div>
+          <div className="font-medium text-gray-800 whitespace-pre-line">
+            {data.address || "123 Main Street, Dhaka, Bangladesh"}
+          </div>
+
           <div className="text-[#1e4e6c] font-medium">DATE</div>
           <div className="font-medium text-gray-800">
             {formatDate(data.date) || "28 Feb, 2025"}
@@ -143,7 +151,7 @@ export default function InvoicePreview({ data }: InvoicePreviewProps) {
                     {item.quantity || 1000}
                   </div>
                   <div className="text-center col-span-1">
-                    {item.rate ? item.rate.toFixed(2) : "0.00"}/-
+                    @ {item.rate ? item.rate.toFixed(2) : "0.00"}/-
                   </div>
                   <div className="text-right col-span-2">
                     {item.amount ? item.amount.toFixed(0) : "0000"}/-
@@ -161,40 +169,42 @@ export default function InvoicePreview({ data }: InvoicePreviewProps) {
             )}
           </div>
 
-          {/* Subtotal, Delivery, Discount, and Total */}
-          <div className="flex flex-col items-end mt-6 border-t-2 border-[#1e4e6c] pt-4 pr-4">
-            <div className="grid grid-cols-2 gap-x-12 text-right">
-              <div className="text-[#1e4e6c] font-medium">Subtotal</div>
-              <div className="font-medium">
-                {data.subtotal ? data.subtotal.toFixed(0) : "0"}/-
-              </div>
+          {/* Subtotal, Delivery, Discount, and Total - conditionally shown */}
+          {showTotals && (
+            <div className="flex flex-col items-end mt-6 border-t-2 border-[#1e4e6c] pt-4 pr-4">
+              <div className="grid grid-cols-2 gap-x-12 text-right">
+                <div className="text-[#1e4e6c] font-medium">Subtotal</div>
+                <div className="font-medium">
+                  {data.subtotal ? data.subtotal.toFixed(0) : "0"}/-
+                </div>
 
-              {data.deliveryCost > 0 && (
-                <>
-                  <div className="text-[#1e4e6c] font-medium">
-                    Delivery Cost
-                  </div>
-                  <div className="font-medium">
-                    {data.deliveryCost.toFixed(0)}/-
-                  </div>
-                </>
-              )}
+                {data.deliveryCost > 0 && (
+                  <>
+                    <div className="text-[#1e4e6c] font-medium">
+                      Delivery Cost
+                    </div>
+                    <div className="font-medium">
+                      {data.deliveryCost.toFixed(0)}/-
+                    </div>
+                  </>
+                )}
 
-              {data.discount > 0 && (
-                <>
-                  <div className="text-[#1e4e6c] font-medium">Discount</div>
-                  <div className="font-medium text-red-600">
-                    -{data.discount.toFixed(0)}/-
-                  </div>
-                </>
-              )}
+                {data.discount > 0 && (
+                  <>
+                    <div className="text-[#1e4e6c] font-medium">Discount</div>
+                    <div className="font-medium text-red-600">
+                      -{data.discount.toFixed(0)}/-
+                    </div>
+                  </>
+                )}
 
-              <div className="text-[#1e4e6c] font-bold">Total</div>
-              <div className="font-bold">
-                {data.total ? data.total.toFixed(0) : "00,000"}/-
+                <div className="text-[#1e4e6c] font-bold">Total</div>
+                <div className="font-bold">
+                  {data.total ? data.total.toFixed(0) : "00,000"}/-
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Terms and conditions - only show for quotations */}
