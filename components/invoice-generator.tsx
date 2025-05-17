@@ -1,210 +1,303 @@
-"use client"
+"use client";
 
-import { useState, useRef, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent } from "@/components/ui/card"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
-import InvoicePreview from "@/components/invoice-preview"
-import type { InvoiceData, LineItem } from "@/types/invoice"
+import { useState, useRef, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import InvoicePreview from "@/components/invoice-preview";
+import type { InvoiceData, LineItem } from "@/types/invoice";
 
-export default function InvoiceGenerator() {
-  const [invoiceData, setInvoiceData] = useState<InvoiceData>({
+// Default data templates for each document type
+const defaultDataTemplates: Record<string, InvoiceData> = {
+  invoice: {
     documentType: "invoice",
     invoiceNumber: "",
     recipient: "",
     subject: "",
     address: "",
     date: new Date().toISOString().split("T")[0],
-    lineItems: [{ id: 1, product: "", description: "As per Sample", quantity: 0, rate: 0, amount: 0 }],
+    lineItems: [
+      {
+        id: 1,
+        product: "",
+        description: "As per Sample",
+        quantity: 0,
+        rate: 0,
+        amount: 0,
+      },
+    ],
     subtotal: 0,
     deliveryCost: 0,
     discount: 0,
     total: 0,
     showTotals: true,
     advance: 0,
-  })
+  },
+  "delivery-challan": {
+    documentType: "delivery-challan",
+    invoiceNumber: "",
+    recipient: "",
+    subject: "",
+    address: "",
+    date: new Date().toISOString().split("T")[0],
+    lineItems: [
+      {
+        id: 1,
+        product: "",
+        description: "As per Sample",
+        quantity: 0,
+        rate: 0,
+        amount: 0,
+      },
+    ],
+    subtotal: 0,
+    deliveryCost: 0,
+    discount: 0,
+    total: 0,
+    showTotals: true,
+    advance: 0,
+  },
+  quotation: {
+    documentType: "quotation",
+    invoiceNumber: "",
+    recipient: "",
+    subject: "",
+    address: "",
+    date: new Date().toISOString().split("T")[0],
+    lineItems: [
+      {
+        id: 1,
+        product: "",
+        description: "As per Sample",
+        quantity: 0,
+        rate: 0,
+        amount: 0,
+      },
+    ],
+    subtotal: 0,
+    deliveryCost: 0,
+    discount: 0,
+    total: 0,
+    showTotals: true,
+    advance: 0,
+  },
+};
 
-  const [isLoadedFromDraft, setIsLoadedFromDraft] = useState(false)
+export default function InvoiceGenerator() {
+  const [currentDocType, setCurrentDocType] = useState<
+    "invoice" | "delivery-challan" | "quotation"
+  >("invoice");
+  const [invoiceData, setInvoiceData] = useState<InvoiceData>(
+    defaultDataTemplates["invoice"]
+  );
+  const [isLoadedFromDraft, setIsLoadedFromDraft] = useState(false);
   const [drafts, setDrafts] = useState<{ [key: string]: InvoiceData[] }>({
     invoice: [],
     "delivery-challan": [],
     quotation: [],
-  })
+  });
 
-  const invoiceRef = useRef<HTMLDivElement>(null)
+  const invoiceRef = useRef<HTMLDivElement>(null);
 
   // Load drafts from local storage on component mount
   useEffect(() => {
-    const storedDrafts = localStorage.getItem("invoiceDrafts")
+    const storedDrafts = localStorage.getItem("invoiceDrafts");
     if (storedDrafts) {
       try {
-        const parsedDrafts = JSON.parse(storedDrafts)
-        setDrafts(parsedDrafts)
+        const parsedDrafts = JSON.parse(storedDrafts);
+        setDrafts(parsedDrafts);
       } catch (error) {
-        console.error("Error parsing drafts from local storage:", error)
+        console.error("Error parsing drafts from local storage:", error);
       }
     }
-  }, [])
+  }, []);
+
+  // Handle document type change
+  const handleDocTypeChange = (value: string) => {
+    const newDocType = value as "invoice" | "delivery-challan" | "quotation";
+
+    // Reset form to default values for the new document type
+    setInvoiceData({
+      ...defaultDataTemplates[newDocType],
+      date: new Date().toISOString().split("T")[0], // Always use current date
+    });
+
+    setCurrentDocType(newDocType);
+    setIsLoadedFromDraft(false);
+  };
 
   const handlePrint = () => {
     if (invoiceRef.current) {
       // Open print dialog
-      window.print()
+      window.print();
     }
-  }
+  };
 
-  const updateLineItem = (index: number, field: keyof LineItem, value: string | number) => {
-    const updatedItems = [...invoiceData.lineItems]
+  const updateLineItem = (
+    index: number,
+    field: keyof LineItem,
+    value: string | number
+  ) => {
+    const updatedItems = [...invoiceData.lineItems];
 
     if (field === "quantity" || field === "rate") {
-      const numValue = typeof value === "string" ? Number.parseFloat(value) || 0 : value
+      const numValue =
+        typeof value === "string" ? Number.parseFloat(value) || 0 : value;
       updatedItems[index] = {
         ...updatedItems[index],
         [field]: numValue,
-        amount: field === "quantity" ? numValue * updatedItems[index].rate : updatedItems[index].quantity * numValue,
-      }
+        amount:
+          field === "quantity"
+            ? numValue * updatedItems[index].rate
+            : updatedItems[index].quantity * numValue,
+      };
     } else {
       updatedItems[index] = {
         ...updatedItems[index],
         [field]: value,
-      }
+      };
     }
 
-    const subtotal = updatedItems.reduce((sum, item) => sum + item.amount, 0)
-    const total = subtotal + invoiceData.deliveryCost - invoiceData.discount
+    const subtotal = updatedItems.reduce((sum, item) => sum + item.amount, 0);
+    const total = subtotal + invoiceData.deliveryCost - invoiceData.discount;
 
     setInvoiceData({
       ...invoiceData,
       lineItems: updatedItems,
       subtotal,
       total,
-    })
-  }
+    });
+  };
 
   const updateDeliveryCost = (value: string) => {
-    const deliveryCost = Number.parseFloat(value) || 0
-    const total = invoiceData.subtotal + deliveryCost - invoiceData.discount
+    const deliveryCost = Number.parseFloat(value) || 0;
+    const total = invoiceData.subtotal + deliveryCost - invoiceData.discount;
 
     setInvoiceData({
       ...invoiceData,
       deliveryCost,
       total,
-    })
-  }
+    });
+  };
 
   const updateDiscount = (value: string) => {
-    const discount = Number.parseFloat(value) || 0
-    const total = invoiceData.subtotal + invoiceData.deliveryCost - discount
+    const discount = Number.parseFloat(value) || 0;
+    const total = invoiceData.subtotal + invoiceData.deliveryCost - discount;
 
     setInvoiceData({
       ...invoiceData,
       discount,
       total,
-    })
-  }
+    });
+  };
 
   const updateAdvance = (value: string) => {
-    const advance = Number.parseFloat(value) || 0
+    const advance = Number.parseFloat(value) || 0;
 
     setInvoiceData({
       ...invoiceData,
       advance,
-    })
-  }
+    });
+  };
 
   const addLineItem = () => {
-    const newId = Math.max(0, ...invoiceData.lineItems.map((item) => item.id)) + 1
+    const newId =
+      Math.max(0, ...invoiceData.lineItems.map((item) => item.id)) + 1;
     setInvoiceData({
       ...invoiceData,
       lineItems: [
         ...invoiceData.lineItems,
-        { id: newId, product: "", description: "As per Sample", quantity: 0, rate: 0, amount: 0 },
+        {
+          id: newId,
+          product: "",
+          description: "As per Sample",
+          quantity: 0,
+          rate: 0,
+          amount: 0,
+        },
       ],
-    })
-  }
+    });
+  };
 
   const removeLineItem = (id: number) => {
-    const updatedItems = invoiceData.lineItems.filter((item) => item.id !== id)
-    const subtotal = updatedItems.reduce((sum, item) => sum + item.amount, 0)
-    const total = subtotal + invoiceData.deliveryCost - invoiceData.discount
+    const updatedItems = invoiceData.lineItems.filter((item) => item.id !== id);
+    const subtotal = updatedItems.reduce((sum, item) => sum + item.amount, 0);
+    const total = subtotal + invoiceData.deliveryCost - invoiceData.discount;
 
     setInvoiceData({
       ...invoiceData,
       lineItems: updatedItems,
       subtotal,
       total,
-    })
-  }
+    });
+  };
 
   // Get the appropriate document number label based on document type
   const getDocumentNumberLabel = () => {
-    switch (invoiceData.documentType) {
+    switch (currentDocType) {
       case "invoice":
-        return "Invoice #"
+        return "Invoice #";
       case "delivery-challan":
-        return "Challan #"
+        return "Challan #";
       case "quotation":
-        return "Quotation #"
+        return "Quotation #";
       default:
-        return "Document #"
+        return "Document #";
     }
-  }
+  };
 
   // Save current invoice data as draft to local storage
   const saveAsDraft = () => {
-    const docType = invoiceData.documentType
-    const updatedDrafts = { ...drafts }
+    const updatedDrafts = { ...drafts };
 
     // Add current invoice data to the appropriate array
-    updatedDrafts[docType] = [...(updatedDrafts[docType] || []), { ...invoiceData, savedAt: new Date().toISOString() }]
+    updatedDrafts[currentDocType] = [
+      ...(updatedDrafts[currentDocType] || []),
+      { ...invoiceData },
+    ];
 
     // Save to local storage
-    localStorage.setItem("invoiceDrafts", JSON.stringify(updatedDrafts))
-    setDrafts(updatedDrafts)
-    setIsLoadedFromDraft(true)
+    localStorage.setItem("invoiceDrafts", JSON.stringify(updatedDrafts));
+    setDrafts(updatedDrafts);
+    setIsLoadedFromDraft(true);
 
-    alert(`Saved as ${docType} draft!`)
-  }
+    alert(`Saved as ${currentDocType} draft!`);
+  };
 
   // Load the most recent draft of the current document type
   const loadDraft = () => {
-    const docType = invoiceData.documentType
-    if (drafts[docType] && drafts[docType].length > 0) {
+    if (drafts[currentDocType] && drafts[currentDocType].length > 0) {
       // Get the most recent draft
-      const mostRecentDraft = drafts[docType][drafts[docType].length - 1]
-      setInvoiceData(mostRecentDraft)
-      setIsLoadedFromDraft(true)
+      const mostRecentDraft =
+        drafts[currentDocType][drafts[currentDocType].length - 1];
+      setInvoiceData(mostRecentDraft);
+      setIsLoadedFromDraft(true);
     } else {
-      alert(`No ${docType} drafts found.`)
+      alert(`No ${currentDocType} drafts found.`);
     }
-  }
+  };
 
-  // Reset form to default state
+  // Reset form to default state for current document type
   const resetData = () => {
     setInvoiceData({
-      documentType: invoiceData.documentType, // Keep the current document type
-      invoiceNumber: "",
-      recipient: "",
-      subject: "",
-      address: "",
-      date: new Date().toISOString().split("T")[0],
-      lineItems: [{ id: 1, product: "", description: "As per Sample", quantity: 0, rate: 0, amount: 0 }],
-      subtotal: 0,
-      deliveryCost: 0,
-      discount: 0,
-      total: 0,
-      showTotals: true,
-      advance: 0,
-    })
-    setIsLoadedFromDraft(false)
-  }
+      ...defaultDataTemplates[currentDocType],
+      date: new Date().toISOString().split("T")[0], // Always use current date
+    });
+    setIsLoadedFromDraft(false);
+  };
 
   // Check if there are drafts available for the current document type
-  const hasDrafts = drafts[invoiceData.documentType]?.length > 0
+  const hasDrafts = drafts[currentDocType]?.length > 0;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 print:!grid-cols-1 print:gap-0">
@@ -217,20 +310,17 @@ export default function InvoiceGenerator() {
               <div>
                 <Label htmlFor="document-type">Document Type</Label>
                 <Select
-                  value={invoiceData.documentType}
-                  onValueChange={(value) =>
-                    setInvoiceData({
-                      ...invoiceData,
-                      documentType: value as "invoice" | "delivery-challan" | "quotation",
-                    })
-                  }
+                  value={currentDocType}
+                  onValueChange={handleDocTypeChange}
                 >
                   <SelectTrigger id="document-type">
                     <SelectValue placeholder="Select document type" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="invoice">Invoice</SelectItem>
-                    <SelectItem value="delivery-challan">Delivery Challan</SelectItem>
+                    <SelectItem value="delivery-challan">
+                      Delivery Challan
+                    </SelectItem>
                     <SelectItem value="quotation">Quotation</SelectItem>
                   </SelectContent>
                 </Select>
@@ -240,7 +330,12 @@ export default function InvoiceGenerator() {
                 <Input
                   id="invoice-number"
                   value={invoiceData.invoiceNumber}
-                  onChange={(e) => setInvoiceData({ ...invoiceData, invoiceNumber: e.target.value })}
+                  onChange={(e) =>
+                    setInvoiceData({
+                      ...invoiceData,
+                      invoiceNumber: e.target.value,
+                    })
+                  }
                   placeholder={getDocumentNumberLabel()}
                 />
               </div>
@@ -251,7 +346,9 @@ export default function InvoiceGenerator() {
               <Input
                 id="recipient"
                 value={invoiceData.recipient}
-                onChange={(e) => setInvoiceData({ ...invoiceData, recipient: e.target.value })}
+                onChange={(e) =>
+                  setInvoiceData({ ...invoiceData, recipient: e.target.value })
+                }
                 placeholder="Bangladesh Swimming Federation"
               />
             </div>
@@ -261,7 +358,9 @@ export default function InvoiceGenerator() {
               <Input
                 id="subject"
                 value={invoiceData.subject}
-                onChange={(e) => setInvoiceData({ ...invoiceData, subject: e.target.value })}
+                onChange={(e) =>
+                  setInvoiceData({ ...invoiceData, subject: e.target.value })
+                }
                 placeholder="Invoice subject"
               />
             </div>
@@ -271,7 +370,9 @@ export default function InvoiceGenerator() {
               <Textarea
                 id="address"
                 value={invoiceData.address}
-                onChange={(e) => setInvoiceData({ ...invoiceData, address: e.target.value })}
+                onChange={(e) =>
+                  setInvoiceData({ ...invoiceData, address: e.target.value })
+                }
                 placeholder="Recipient's address"
                 rows={2}
               />
@@ -283,24 +384,30 @@ export default function InvoiceGenerator() {
                 id="date"
                 type="date"
                 value={invoiceData.date}
-                onChange={(e) => setInvoiceData({ ...invoiceData, date: e.target.value })}
+                onChange={(e) =>
+                  setInvoiceData({ ...invoiceData, date: e.target.value })
+                }
               />
             </div>
 
             {/* Show totals toggle for quotations */}
-            {invoiceData.documentType === "quotation" && (
+            {currentDocType === "quotation" && (
               <div className="flex items-center space-x-2">
                 <Switch
                   id="show-totals"
                   checked={invoiceData.showTotals}
-                  onCheckedChange={(checked) => setInvoiceData({ ...invoiceData, showTotals: checked })}
+                  onCheckedChange={(checked) =>
+                    setInvoiceData({ ...invoiceData, showTotals: checked })
+                  }
                 />
-                <Label htmlFor="show-totals">Show subtotal and total amounts</Label>
+                <Label htmlFor="show-totals">
+                  Show subtotal and total amounts
+                </Label>
               </div>
             )}
 
             {/* Advance payment field for invoices */}
-            {invoiceData.documentType === "invoice" && (
+            {currentDocType === "invoice" && (
               <div>
                 <Label htmlFor="advance">Advance Payment</Label>
                 <Input
@@ -316,7 +423,9 @@ export default function InvoiceGenerator() {
 
           <h3 className="text-xl font-bold mb-4">
             Line Items{" "}
-            <span className="text-sm font-normal text-gray-500">(For best results, limit to 5 items per page)</span>
+            <span className="text-sm font-normal text-gray-500">
+              (For best results, limit to 5 items per page)
+            </span>
           </h3>
 
           {invoiceData.lineItems.map((item, index) => (
@@ -328,7 +437,9 @@ export default function InvoiceGenerator() {
                   <Input
                     id={`product-${item.id}`}
                     value={item.product}
-                    onChange={(e) => updateLineItem(index, "product", e.target.value)}
+                    onChange={(e) =>
+                      updateLineItem(index, "product", e.target.value)
+                    }
                     placeholder="Product name"
                   />
                 </div>
@@ -337,7 +448,9 @@ export default function InvoiceGenerator() {
                   <Textarea
                     id={`description-${item.id}`}
                     value={item.description}
-                    onChange={(e) => updateLineItem(index, "description", e.target.value)}
+                    onChange={(e) =>
+                      updateLineItem(index, "description", e.target.value)
+                    }
                     placeholder="Product description"
                     rows={2}
                   />
@@ -352,12 +465,14 @@ export default function InvoiceGenerator() {
                     id={`quantity-${item.id}`}
                     type="number"
                     value={item.quantity || ""}
-                    onChange={(e) => updateLineItem(index, "quantity", e.target.value)}
+                    onChange={(e) =>
+                      updateLineItem(index, "quantity", e.target.value)
+                    }
                     placeholder="0"
                   />
                 </div>
 
-                {invoiceData.documentType !== "delivery-challan" && (
+                {currentDocType !== "delivery-challan" && (
                   <>
                     <div className="col-span-4 sm:col-span-3">
                       <Label htmlFor={`rate-${item.id}`}>Rate</Label>
@@ -365,7 +480,9 @@ export default function InvoiceGenerator() {
                         id={`rate-${item.id}`}
                         type="number"
                         value={item.rate || ""}
-                        onChange={(e) => updateLineItem(index, "rate", e.target.value)}
+                        onChange={(e) =>
+                          updateLineItem(index, "rate", e.target.value)
+                        }
                         placeholder="0.00"
                       />
                     </div>
@@ -380,7 +497,9 @@ export default function InvoiceGenerator() {
                 )}
 
                 <div
-                  className={`col-span-12 sm:col-span-${invoiceData.documentType === "delivery-challan" ? "6" : "3"} flex items-end justify-end`}
+                  className={`col-span-12 sm:col-span-${
+                    currentDocType === "delivery-challan" ? "6" : "3"
+                  } flex items-end justify-end`}
                 >
                   <Button
                     variant="destructive"
@@ -396,7 +515,7 @@ export default function InvoiceGenerator() {
             </div>
           ))}
 
-          {invoiceData.documentType !== "delivery-challan" && (
+          {currentDocType !== "delivery-challan" && (
             <div className="grid grid-cols-2 gap-4 mb-6">
               <div>
                 <Label htmlFor="delivery-cost">Delivery Cost</Label>
@@ -441,11 +560,11 @@ export default function InvoiceGenerator() {
             </div>
             <Button onClick={handlePrint}>
               Generate{" "}
-              {invoiceData.documentType === "invoice"
+              {currentDocType === "invoice"
                 ? "Invoice"
-                : invoiceData.documentType === "delivery-challan"
-                  ? "Challan"
-                  : "Quotation"}
+                : currentDocType === "delivery-challan"
+                ? "Challan"
+                : "Quotation"}
             </Button>
           </div>
         </CardContent>
@@ -457,5 +576,5 @@ export default function InvoiceGenerator() {
         </div>
       </div>
     </div>
-  )
+  );
 }
