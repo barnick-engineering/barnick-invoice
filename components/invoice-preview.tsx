@@ -127,10 +127,14 @@ export default function InvoicePreview({ data }: InvoicePreviewProps) {
               "Quotation for Visiting Card, Bottle Labels, Bottle Packet."}
           </div>
 
-          <div className="text-[#1e4e6c] font-medium">ADDRESS</div>
-          <div className="font-medium text-gray-800 whitespace-pre-line">
-            {data.address || "123 Main Street, Dhaka, Bangladesh"}
-          </div>
+          {data.address && data.address.length > 0 && (
+            <>
+              <div className="text-[#1e4e6c] font-medium">ADDRESS</div>
+              <div className="font-medium text-gray-800 whitespace-pre-line">
+                {data.address || "123 Main Street, Dhaka, Bangladesh"}
+              </div>
+            </>
+          )}
 
           <div className="text-[#1e4e6c] font-medium">DATE</div>
           <div className="font-medium text-gray-800">
