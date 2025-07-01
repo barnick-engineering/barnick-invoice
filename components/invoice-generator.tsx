@@ -25,6 +25,7 @@ const defaultDataTemplates: Record<string, InvoiceData> = {
     recipient: "",
     subject: "",
     address: "",
+    phone: "",
     date: new Date().toISOString().split("T")[0],
     lineItems: [
       {
@@ -49,6 +50,7 @@ const defaultDataTemplates: Record<string, InvoiceData> = {
     recipient: "",
     subject: "",
     address: "",
+    phone: "",
     date: new Date().toISOString().split("T")[0],
     lineItems: [
       {
@@ -73,6 +75,7 @@ const defaultDataTemplates: Record<string, InvoiceData> = {
     recipient: "",
     subject: "",
     address: "",
+    phone: "",
     date: new Date().toISOString().split("T")[0],
     lineItems: [
       {
@@ -375,6 +378,18 @@ export default function InvoiceGenerator() {
                 }
                 placeholder="Recipient's address"
                 rows={2}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="subject">Phone</Label>
+              <Input
+                id="subject"
+                value={invoiceData.phone}
+                onChange={(e) =>
+                  setInvoiceData({ ...invoiceData, phone: e.target.value })
+                }
+                placeholder="Recipient Phone"
               />
             </div>
 

@@ -136,6 +136,16 @@ export default function InvoicePreview({ data }: InvoicePreviewProps) {
             </>
           )}
 
+
+          {data.phone && data.phone.length > 0 && (
+            <>
+              <div className="text-[#1e4e6c] font-medium">PHONE</div>
+              <div className="font-medium text-gray-800 whitespace-pre-line">
+                {data.phone || "0188228828282"}
+              </div>
+            </>
+          )}
+
           <div className="text-[#1e4e6c] font-medium">DATE</div>
           <div className="font-medium text-gray-800">
             {formatDate(data.date) || "28 Feb, 2025"}
