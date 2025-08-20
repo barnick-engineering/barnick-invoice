@@ -136,7 +136,6 @@ export default function InvoicePreview({ data }: InvoicePreviewProps) {
             </>
           )}
 
-
           {data.phone && data.phone.length > 0 && (
             <>
               <div className="text-[#1e4e6c] font-medium">PHONE</div>
@@ -333,15 +332,17 @@ export default function InvoicePreview({ data }: InvoicePreviewProps) {
           {/* Founder's Signature */}
           <div className="text-center w-40">
             <div className="flex flex-col items-center">
-              <div className="h-12 flex items-end justify-center">
-                <Image
-                  src="/signature.png"
-                  alt="Biplob Chakraborty Signature"
-                  width={160}
-                  height={40}
-                  className="w-full h-auto object-contain"
-                />
-              </div>
+                <div className="h-12 flex items-end justify-center">
+                  {data.documentType === "quotation" && (
+                  <Image
+                    src="/signature.png"
+                    alt="Biplob Chakraborty Signature"
+                    width={160}
+                    height={40}
+                    className="w-full h-auto object-contain"
+                  />
+                  )}
+                </div>
               <div className="border-b border-gray-400 w-full mt-1"></div>
             </div>
             <div className="mt-2">
