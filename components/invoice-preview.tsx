@@ -107,8 +107,8 @@ export default function InvoicePreview({ data }: InvoicePreviewProps) {
               {data.documentType === "invoice"
                 ? "Invoice"
                 : data.documentType === "delivery-challan"
-                ? "Challan"
-                : "Quotation"}{" "}
+                  ? "Challan"
+                  : "Quotation"}{" "}
               #: {data.invoiceNumber}
             </p>
           )}
@@ -329,27 +329,19 @@ export default function InvoicePreview({ data }: InvoicePreviewProps) {
             </div>
           )}
 
-          {/* Founder's Signature */}
-          {/* <div className="text-center w-40">
-            <div className="flex flex-col items-center">
-                <div className="h-12 flex items-end justify-center">
-                  {data.documentType === "quotation" && (
-                    <Image
-                      src="/signature.png"
-                      alt="Biplob Chakraborty Signature"
-                      width={160}
-                      height={40}
-                      className="w-full h-auto object-contain"
-                    />
-                  )}
+          {data.documentType === "delivery-challan" && (
+            <div className="text-center w-40">
+              <div className="h-12 flex items-end justify-center">
+                <div className="border-b border-gray-400 w-full">&nbsp;</div>
+              </div>
+              <div className="mt-2">
+                <div className="font-medium">Authorized signature</div>
+                <div className="text-sm text-gray-600">
+                  On behalf of Barnick Pracharani
                 </div>
-              <div className="border-b border-gray-400 w-full mt-1"></div>
+              </div>
             </div>
-            <div className="mt-2">
-              <div className="font-medium">Biplob Chakraborty</div>
-              <div>Founder & CEO</div>
-            </div>
-          </div> */}
+          )}
         </div>
 
         {/* Contact info */}
